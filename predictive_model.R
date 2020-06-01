@@ -3,7 +3,9 @@ require(ggplot2)
 require(rayshader)
 require(stringr)
 
-anime <- read_csv("anime.csv")
+anime_raw <- read_csv("anime.csv")
+
+anime <- anime_raw # in case I want to do something about the NA rows
 
 # Separating the genres from the entries in the data frame
 # into discrete names.
@@ -20,14 +22,26 @@ names(genre_tag_number) = "genre_tag_number"
 anime <- cbind(anime, genre_tag_number)
 rm(genre_tag_number)
 
-#Making a comprehensive list of all listed genres:
+anime <- anime %>% mutate(genre_member_ratio = 10 - 5*anime$genre_tag_number/log(anime$members))
 
+#Making a comprehensive list of all listed genres:
 # Extract the nth genre of anime r using x <- genres[[1]][[r]][n]
+all_genres <- character()
+for(i in 1:length(genres[[1]])){
+  for(j in 1:length(genres[[1]][[i]])){
+    # Append the genre if it isn't there yet.
+    if(!(genres[[1]][[i]][j] %in% all_genres)){
+      all_genres <- append(all_genres, genres[[1]][[i]][j])
+    }
+  }
+}
 
 # Some visualizations:
 hist(anime$rating)
 hist(anime$members)
 hist(anime$genre_tag_number)
+hist(anime$genre_tag_number/log(anime$members))
+hist(10 - 5*anime$genre_tag_number/log(anime$members))
 
 plot(anime$genre_tag_number, anime$rating)
 rating_vs_genre_no <- lm(rating ~ genre_tag_number, data = anime)
@@ -36,5 +50,10 @@ hist(rating_vs_genre_no$residuals)
 plot(rating_vs_genre_no$fitted.values, rating_vs_genre_no$residuals)
 
 plot(log(anime$members), anime$rating)
+plot(anime$genre_member_ratio, anime$rating)
 g <- ggplot(data = anime, aes(x = genre_tag_number, y = log(members), color = rating))
 (g <- g + scale_color_gradient(low = "red", high = "green") + geom_point())
+
+# There is a general trend for the ratings to be higher the more genres are present:
+means_table <- anime %>% group_by(genre_tag_number) %>% summarize(ave_rating = mean(rating, na.rm = TRUE))
+summary(lm(rating ~ genre_member_ratio + I(log(members)), data = anime))
