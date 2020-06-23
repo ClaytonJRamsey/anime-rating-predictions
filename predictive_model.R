@@ -6,6 +6,9 @@ require(stringr)
 ################## Data Cleaning and Preparing Variables ##########################
 
 anime_raw <- read_csv("anime.csv")
+
+anime_raw <- anime_raw %>% mutate(episodes = as.integer(episodes))
+
 anime <- anime_raw[which(complete.cases(anime_raw)),]
 rm(anime_raw)
 
@@ -24,6 +27,7 @@ names(genre_tag_number) = "genre_tag_number"
 anime <- cbind(anime, genre_tag_number)
 rm(genre_tag_number)
 
+# This transformed variable
 anime <- anime %>% mutate(genre_member_ratio = 10 - 5*anime$genre_tag_number/log(anime$members))
 
 # Making a comprehensive list of all listed genres:
@@ -56,27 +60,36 @@ for(i in 1:length(all_genres)){
 rm(i); rm(j);
 
 
+######################### Visualizations #####################################
 
-################ Visualizations and Analysis ##################################
-hist(anime$rating)
-hist(anime$members)
-hist(anime$genre_tag_number)
-hist(anime$genre_tag_number/log(anime$members))
-hist(10 - 5*anime$genre_tag_number/log(anime$members))
+#How many genre tags the entry contains:
+gt <- ggplot(data = anime, aes(genre_tag_number)) + geom_bar()
+gt
 
-plot(anime$genre_tag_number, anime$rating)
-rating_vs_genre_no <- lm(rating ~ genre_tag_number, data = anime)
-summary(rating_vs_genre_no)
-hist(rating_vs_genre_no$residuals)
-plot(rating_vs_genre_no$fitted.values, rating_vs_genre_no$residuals)
+# Rating is the response variable
+r <- ggplot(data = anime, aes(rating)) + geom_histogram()
+r
 
-plot(log(anime$members), anime$rating)
-plot(anime$genre_member_ratio, anime$rating)
-g <- ggplot(data = anime, aes(x = genre_tag_number, y = log(members), color = rating))
-(g <- g + scale_color_gradient(low = "red", high = "green") + geom_point())
+# Members is the number of members of the group
+m <- ggplot(data = anime, aes(members)) + geom_histogram()
+m
 
-# There is a general trend for the ratings to be higher the more genres are present:
+# Rating vs. type
+type_table <- anime %>% group_by(type) %>% summarize(ave_rating = mean(rating, na.rm = TRUE))
+
+g <- ggplot(data = anime, aes(x = type, y = rating)) + geom_boxplot()
+g 
+type_table
+
+# How many episodes:
+e <- ggplot(data = anime, aes(episodes)) + geom_histogram()
+e
+
+# There is some connection between rating and the number of genres present.
 means_table <- anime %>% group_by(genre_tag_number) %>% summarize(ave_rating = mean(rating, na.rm = TRUE))
-summary(lm(rating ~ genre_member_ratio + I(log(members)), data = anime))
+mt <- ggplot(data = means_table, aes(x = genre_tag_number, y = ave_rating)) + geom_point()
+mt
 
-
+# Rating vs the log of members.
+mb <- ggplot(data = anime, aes(x = log(members), y = rating)) + geom_point()
+mb
