@@ -1,12 +1,13 @@
 require(tidyverse)
 require(ggplot2)
-require(rayshader)
 require(stringr)
+require(GGally)
 
 ################## Data Cleaning and Preparing Variables ##########################
 
 anime_raw <- read_csv("anime.csv")
 
+# This variable is for the number of episodes, so it should be coded numeric.
 anime_raw <- anime_raw %>% mutate(episodes = as.integer(episodes))
 
 anime <- anime_raw[which(complete.cases(anime_raw)),]
@@ -20,6 +21,7 @@ genre_split <- function(x){
 genres <- apply(matrix(anime$genre), 2, genre_split)
 names(genres[[1]]) <- 1:length(genres[[1]])
 
+
 # Making a variable to indicate how many genres each anime lists.
 genre_tag_number <- lapply(genres[[1]], length)
 genre_tag_number <- as.data.frame(do.call(rbind, genre_tag_number))
@@ -27,8 +29,6 @@ names(genre_tag_number) = "genre_tag_number"
 anime <- cbind(anime, genre_tag_number)
 rm(genre_tag_number)
 
-# This transformed variable
-anime <- anime %>% mutate(genre_member_ratio = 10 - 5*anime$genre_tag_number/log(anime$members))
 
 # Making a comprehensive list of all listed genres:
 # Extract the nth genre of anime r using x <- genres[[1]][[r]][n]
@@ -43,7 +43,7 @@ for(i in 1:length(genres[[1]])){
 }
 
 # This is to make factor variables indicating the presence of each genre for each anime.
-rating_by_genre <- tibble(anime$rating)
+rating_by_genre <- tibble(rating = anime$rating)
 for(i in 1:length(all_genres)){
   #create a variable for that genre:
   x <- integer(length(anime$genre))
@@ -62,6 +62,9 @@ rm(i); rm(j);
 
 ######################### Visualizations #####################################
 
+#Checking the correlations of numeric variables
+ggpairs(data = anime, columns = 5:8)
+
 #How many genre tags the entry contains:
 gt <- ggplot(data = anime, aes(genre_tag_number)) + geom_bar()
 gt
@@ -76,7 +79,6 @@ m
 
 # Rating vs. type
 type_table <- anime %>% group_by(type) %>% summarize(ave_rating = mean(rating, na.rm = TRUE))
-
 g <- ggplot(data = anime, aes(x = type, y = rating)) + geom_boxplot()
 g 
 type_table
@@ -93,3 +95,10 @@ mt
 # Rating vs the log of members.
 mb <- ggplot(data = anime, aes(x = log(members), y = rating)) + geom_point()
 mb
+
+#################### Analyses ###########################
+
+# Starting with a high-dimension model estimating the rating from the presence or absense of genres.
+genremodel <- glm(rating ~ ., data = rating_by_genre)
+summary(genremodel)
+# Many of the genres show significance.
