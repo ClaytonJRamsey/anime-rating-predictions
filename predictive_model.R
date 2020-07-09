@@ -87,9 +87,12 @@ type_table
 e <- ggplot(data = anime, aes(episodes)) + geom_histogram()
 e
 
+er <- ggplot(data = anime, aes(x = log(episodes), y = rating)) + geom_point() + geom_smooth()
+er
+
 # There is some connection between rating and the number of genres present.
 means_table <- anime %>% group_by(genre_tag_number) %>% summarize(ave_rating = mean(rating, na.rm = TRUE))
-mt <- ggplot(data = means_table, aes(x = genre_tag_number, y = ave_rating)) + geom_point()
+mt <- ggplot(data = means_table, aes(x = genre_tag_number, y = ave_rating)) + geom_point() + geom_smooth()
 mt
 
 # Rating vs the log of members.
@@ -97,8 +100,26 @@ mb <- ggplot(data = anime, aes(x = log(members), y = rating)) + geom_point()
 mb
 
 #################### Analyses ###########################
+numrows <- length(anime$rating)
+training_indices <- sample(1:numrows, round(0.7*numrows), replace = FALSE)
+testing_indices <- setdiff(1:numrows, training_indices)
 
 # Starting with a high-dimension model estimating the rating from the presence or absense of genres.
-genremodel <- glm(rating ~ ., data = rating_by_genre)
+genremodel <- glm(rating ~ ., data = rating_by_genre[training_indices,])
 summary(genremodel)
+
 # Many of the genres show significance.
+genremodel <- step(genremodel)
+step(genremodel)
+summary(genremodel)
+
+#genre-based model predictions
+ratings_predict <- predict(genremodel, rating_by_genre[testing_indices,])
+ratings_actual <- rating_by_genre$rating[testing_indices]
+
+# a model based on other characteristics
+model_2 <- glm(rating ~ genre_tag_number + I(genre_tag_number^2) + I(log(episodes)) + I(log(members)) + type,
+               data = anime[training_indices,])
+summary(model_2)
+ratings_predict_2 <- predict(model_2, anime[testing_indices,])
+rating_summary <- tibble(actual = ratings_actual, pred1 = ratings_predict, pred2 = ratings_predict_2)
