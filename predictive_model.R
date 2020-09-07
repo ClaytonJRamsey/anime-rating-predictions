@@ -143,7 +143,7 @@ rating_summary
 # Now to see if we can improve the genre-based model by including variables from the second model.
 
 # This is to unify the data frames to have a source for prediction.
-anime_allvars <- cbind(rating_by_genre, anime)
+anime_allvars <- cbind(rating_by_genre[,-1], anime)
 
 model_3 <- update(genremodel, . ~ . + genre_tag_number + I(genre_tag_number^2) + type,
                   data = anime_allvars[training_indices,])
