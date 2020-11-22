@@ -47,8 +47,7 @@ for(i in 1:length(genres[[1]])){
 
 # This is to make factor variables indicating the presence of each genre for each anime.
 rating_by_genre <- tibble(rating = anime$rating)
-# anime_name <- tibble(anime_name = anime$name)
-# rating_by_genre <- cbind(rating_by_genre, anime_name)
+
 for(i in 1:length(all_genres)){
   #create a variable for that genre:
   x <- integer(length(anime$genre))
@@ -68,7 +67,7 @@ rm(i); rm(j);
 ######################### Visualizations #####################################
 
 #Checking the correlations of numeric variables
-ggpairs(data = anime, columns = 5:8)
+ggpairs(data = anime, columns = c(5:8))
 
 #How many genre tags the entry contains:
 gt <- ggplot(data = anime, aes(genre_tag_number)) + geom_bar()

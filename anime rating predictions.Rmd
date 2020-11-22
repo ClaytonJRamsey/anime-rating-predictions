@@ -1,0 +1,133 @@
+---
+title: "Anime Rating Predictions"
+author: "Clayton Ramsey"
+date: "November 17, 2020"
+output: 
+  html_document: 
+    df_print: kable
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# A Regression Model for Predicting Anime Ratings
+
+## Data Description
+The data was retrieved from [Kaggle](https://www.kaggle.com/CooperUnion/anime-recommendations-database). It consists of user-generated ratings for 12294 anime productions such as TV shows, movies, and OVAs.
+
+I read the data and performed some cleaning tasks. First, I had to convert the column representing number of episodes back to numeric. Some cells contained the word "unknown", and this caused R to coerce the column to character. I chose to keep only complete cases in order to simplify the analysis.
+
+```{r data_read, include=FALSE}
+require(tidyverse)
+require(ggplot2)
+require(stringr)
+require(GGally)
+require(Metrics)
+library(knitr)
+anime_raw <- read_csv("anime.csv")
+
+# This variable is for the number of episodes, so it should be coded numeric.
+anime_raw <- anime_raw %>% mutate(episodes = as.integer(episodes))
+
+anime <- anime_raw[which(complete.cases(anime_raw)),]
+rm(anime_raw)
+```
+
+
+This is the head of the data frame produced by this step:
+
+```{r anime, echo=FALSE}
+
+kable(head(anime), align = "c")
+```
+
+As we can see the "genre" column consists of a comma-separated string of genre tags. This isn't exactly suitable for an analysis, so I did tow more processing steps to clean this data.
+
+First, I separated the genres into discrete names. I wrote a function to split the character strings and applied it to the "genre" column".
+
+Then I made a comprehensive list of all listed genres.
+
+To extract the nth genre of anime r I used `x <- genres[[1]][[r]][n]`.
+
+```{r genre-splitter, echo=TRUE}
+genre_split <- function(x){
+  return(str_split(x, ", "))
+}
+genres <- apply(matrix(anime$genre), 2, genre_split)
+names(genres[[1]]) <- 1:length(genres[[1]])
+
+all_genres <- character()
+for(i in 1:length(genres[[1]])){
+  for(j in 1:length(genres[[1]][[i]])){
+    # Append the genre if it isn't there yet.
+    if(!(genres[[1]][[i]][j] %in% all_genres)){
+      all_genres <- append(all_genres, genres[[1]][[i]][j])
+    }
+  }
+}
+```
+
+Next, I created a new variable that records the number of genres each anime is tagged for. The thinking here is that there may be some connection between the ratings of the anime and its "complexity", where the number of genres is a proxy for complexity. This variable is bound to the data frame.
+
+```{r include=FALSE}
+genre_tag_number <- lapply(genres[[1]], length)
+genre_tag_number <- as.data.frame(do.call(rbind, genre_tag_number))
+names(genre_tag_number) = "genre_tag_number"
+anime <- cbind(anime, genre_tag_number)
+rm(genre_tag_number)
+```
+
+The `anime` data frame now looks like this:
+
+```{r anime2, echo=FALSE}
+
+kable(head(anime), align = "c")
+```
+
+This table contains the response variable `rating`, variables suitable for predictors, and the variables `anime_id` and `name` which are not used as predictors.
+
+The next step I wanted to make was to create a large data frame containing factor variables representing the presence of the different genres in each anime.
+
+```{r rating-by-genre}
+rating_by_genre <- tibble(rating = anime$rating)
+
+for(i in 1:length(all_genres)){
+  #create a variable for that genre:
+  x <- integer(length(anime$genre))
+  #populate the variable:
+  for (j in 1:length(anime$genre)){
+    x[j] <- all_genres[i] %in% genres[[1]][[j]]
+  }
+  # Attach the newly created variable to the ratings:
+  x <- x %>% as_factor() %>% as_tibble()
+  names(x) <- all_genres[i]
+  rating_by_genre <- cbind(rating_by_genre, x)
+}
+
+rm(i)
+rm(j)
+```
+
+The table looks like this. I'm only showing the first ten genres for illustration purposes but there are actually forty-three of them.
+
+```{r genre-table-summary, echo=FALSE}
+
+kable(head(rating_by_genre[,1:10]), align = "c")
+```
+
+## Visualizations
+
+Looking at the correlations of the numeric variables:
+```{r numeric-correlation, echo=FALSE}
+ggpairs(data = anime, columns = c(5:8)) + theme(axis.text.x = element_text(angle = 90, hjust = 1))
+```
+
+The `members` variable is interesting here because it has some sort of association with `rating` but it isn't really suitable for a predictor variable. This is because the ratings and membership have a mutually influential relationship. The variable `members` is the "number of community members that are in this anime's group" on myanimelist.net. It is likely that "better" anime has more of a following, leading to more group members. So in some sense, the group membership responds to ratings, not the other way around. But also, the more people in the group could mean more exposure, gaining visibility for that anime. This could cause people to view the anime and rate it. Popularity and quality, represented by the variables `members` and `rating` are associated and both suitable for response variables.
+
+```{r members-rating, echo=FALSE}
+# Rating vs the log of members.
+mb <- ggplot(data = anime, aes(x = log(members), y = rating)) + geom_point()
+mb <- mb + geom_smooth()
+mb
+```
