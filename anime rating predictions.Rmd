@@ -123,7 +123,11 @@ Looking at the correlations of the numeric variables:
 ggpairs(data = anime, columns = c(5:8)) + theme(axis.text.x = element_text(angle = 90, hjust = 1))
 ```
 
-The `members` variable is interesting here because it has some sort of association with `rating` but it isn't really suitable for a predictor variable. This is because the ratings and membership have a mutually influential relationship. The variable `members` is the "number of community members that are in this anime's group" on myanimelist.net. It is likely that "better" anime has more of a following, leading to more group members. So in some sense, the group membership responds to ratings, not the other way around. But also, the more people in the group could mean more exposure, gaining visibility for that anime. This could cause people to view the anime and rate it. Popularity and quality, represented by the variables `members` and `rating` are associated and both suitable for response variables.
+The `members` variable is interesting here because it has some sort of association with `rating` but it isn't really suitable for a predictor variable. This is because the ratings and membership have a mutually influential relationship. The variable `members` is the "number of community members that are in this anime's group" on myanimelist.net. It is likely that "better" anime has more of a following, leading to more group members. So in some sense, the group membership responds to ratings, not the other way around. But also, the more people in the group could mean more exposure, gaining visibility for that anime. This could cause people to view the anime and rate it. And if there are more people in the group, it is likely to be better in the first plce, leading to better ratings. 
+
+Popularity and quality, represented by the variables `members` and `rating` are associated and both suitable for response variables. But it isn't wise to use one for a predictor of the other. Not only that, the `members` variable isn't strictly about the anime - it has to do with members of a website and so is at a remove from the characteristics of the anime itself.
+
+Here is a scatter plot of the `rating` variable against the `members` variable. For anime with more members, the positive relationship is more pronounced and the variance is smaller, possibly representing a process of forming consensus.
 
 ```{r members-rating, echo=FALSE}
 # Rating vs the log of members.
@@ -131,3 +135,25 @@ mb <- ggplot(data = anime, aes(x = log(members), y = rating)) + geom_point()
 mb <- mb + geom_smooth()
 mb
 ```
+
+
+The type appears to have some effect on the mean ratings:
+
+```{r type-plot, echo=FALSE}
+
+type_table <- anime %>% group_by(type) %>% summarize(ave_rating = mean(rating, na.rm = TRUE))
+names(type_table) <- c("Type", "Mean Rating")
+g <- ggplot(data = anime, aes(x = type, y = rating)) + geom_boxplot()
+g 
+
+kable(type_table, align = "c")
+```
+
+The average rating for different numbers of genre tags shows a potentially quadratic relationship:
+```{r genre-tags, echo=FALSE}
+means_table <- anime %>% group_by(genre_tag_number) %>% summarize(ave_rating = mean(rating, na.rm = TRUE))
+mt <- ggplot(data = means_table, aes(x = genre_tag_number, y = ave_rating)) + geom_point() + geom_smooth()
+mt
+```
+
+
