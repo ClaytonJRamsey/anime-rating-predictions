@@ -119,7 +119,7 @@ numrows <- length(anime$rating)
 training_indices <- sample(1:numrows, round(0.7*numrows), replace = FALSE)
 testing_indices <- setdiff(1:numrows, training_indices)
 
-# Starting with a high-dimension model estimating the rating from the presence or absense of genres.
+# Starting with a high-dimension model estimating the rating from the presence or absence of genres.
 genremodel <- glm(rating ~ ., data = rating_by_genre[training_indices,])
 summary(genremodel)
 # Many of the genres show significance.
@@ -155,3 +155,16 @@ rmse(ratings_actual, ratings_predict_3)
 mape(ratings_actual, ratings_predict)
 mape(ratings_actual, ratings_predict_2)
 mape(ratings_actual, ratings_predict_3)
+
+# the actual differences
+abs_differences <- seq(0.1, 4.0, 0.1)
+
+# a function to calculate how many predictions are less that a certain number apart.
+calc_number <- function(a){
+  return(length(which(abs(ratings_actual - ratings_predict_3) < a)))
+}
+
+calc_number_v <- Vectorize(calc_number)
+
+difference_proportions <- calc_number_v(abs_differences) / length(ratings_actual)
+plot(abs_differences, difference_proportions)

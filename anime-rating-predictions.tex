@@ -42,6 +42,55 @@
   pdfcreator={LaTeX via pandoc}}
 \urlstyle{same} % disable monospaced font for URLs
 \usepackage[margin=1in]{geometry}
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\usepackage{framed}
+\definecolor{shadecolor}{RGB}{248,248,248}
+\newenvironment{Shaded}{\begin{snugshade}}{\end{snugshade}}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{0.94,0.16,0.16}{#1}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.77,0.63,0.00}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\BuiltInTok}[1]{#1}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{0.64,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\ImportTok}[1]{#1}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.81,0.36,0.00}{\textbf{#1}}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\usepackage{longtable,booktabs}
+% Correct order of tables after \paragraph or \subparagraph
+\usepackage{etoolbox}
+\makeatletter
+\patchcmd\longtable{\par}{\if@noskipsec\mbox{}\fi\par}{}{}
+\makeatother
+% Allow footnotes in longtable head/foot
+\IfFileExists{footnotehyper.sty}{\usepackage{footnotehyper}}{\usepackage{footnote}}
+\makesavenoteenv{longtable}
 \usepackage{graphicx,grffile}
 \makeatletter
 \def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
@@ -76,7 +125,7 @@ Ratings}\label{a-regression-model-for-predicting-anime-ratings}}
 
 The data was retrieved from
 \href{https://www.kaggle.com/CooperUnion/anime-recommendations-database}{Kaggle}.
-It consiste of user-generated ratings for 12294 anime productions such
+It consists of user-generated ratings for 12294 anime productions such
 as TV shows, movies, and OVAs.
 
 I read the data and performed some cleaning tasks. First, I had to
@@ -85,6 +134,204 @@ cells contained the word ``unknown'', and this caused R to coerce the
 column to character. I chose to keep only complete cases in order to
 simplify the analysis.
 
-A selection of the dataset so processed is displayed below:
+This is the head of the data frame produced by this step:
+
+\begin{longtable}[]{@{}ccccccc@{}}
+\toprule
+anime\_id & name & genre & type & episodes & rating &
+members\tabularnewline
+\midrule
+\endhead
+32281 & Kimi no Na wa. & Drama, Romance, School, Supernatural & Movie &
+1 & 9.37 & 200630\tabularnewline
+5114 & Fullmetal Alchemist: Brotherhood & Action, Adventure, Drama,
+Fantasy, Magic, Military, Shounen & TV & 64 & 9.26 &
+793665\tabularnewline
+28977 & Gintama° & Action, Comedy, Historical, Parody, Samurai, Sci-Fi,
+Shounen & TV & 51 & 9.25 & 114262\tabularnewline
+9253 & Steins;Gate & Sci-Fi, Thriller & TV & 24 & 9.17 &
+673572\tabularnewline
+9969 & Gintama' & Action, Comedy, Historical, Parody, Samurai, Sci-Fi,
+Shounen & TV & 51 & 9.16 & 151266\tabularnewline
+32935 & Haikyuu!!: Karasuno Koukou VS Shiratorizawa Gakuen Koukou &
+Comedy, Drama, School, Shounen, Sports & TV & 10 & 9.15 &
+93351\tabularnewline
+\bottomrule
+\end{longtable}
+
+As we can see the ``genre'' column consists of a comma-separated string
+of genre tags. This isn't exactly suitable for an analysis, so I did tow
+more processing steps to clean this data.
+
+First, I separated the genres into discrete names. I wrote a function to
+split the character strings and applied it to the ``genre'' column".
+
+Then I made a comprehensive list of all listed genres.
+
+To extract the nth genre of anime r I used
+\texttt{x\ \textless{}-\ genres{[}{[}1{]}{]}{[}{[}r{]}{]}{[}n{]}}.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{genre_split <-}\StringTok{ }\ControlFlowTok{function}\NormalTok{(x)\{}
+  \KeywordTok{return}\NormalTok{(}\KeywordTok{str_split}\NormalTok{(x, }\StringTok{", "}\NormalTok{))}
+\NormalTok{\}}
+\NormalTok{genres <-}\StringTok{ }\KeywordTok{apply}\NormalTok{(}\KeywordTok{matrix}\NormalTok{(anime}\OperatorTok{$}\NormalTok{genre), }\DecValTok{2}\NormalTok{, genre_split)}
+\KeywordTok{names}\NormalTok{(genres[[}\DecValTok{1}\NormalTok{]]) <-}\StringTok{ }\DecValTok{1}\OperatorTok{:}\KeywordTok{length}\NormalTok{(genres[[}\DecValTok{1}\NormalTok{]])}
+
+\NormalTok{all_genres <-}\StringTok{ }\KeywordTok{character}\NormalTok{()}
+\ControlFlowTok{for}\NormalTok{(i }\ControlFlowTok{in} \DecValTok{1}\OperatorTok{:}\KeywordTok{length}\NormalTok{(genres[[}\DecValTok{1}\NormalTok{]]))\{}
+  \ControlFlowTok{for}\NormalTok{(j }\ControlFlowTok{in} \DecValTok{1}\OperatorTok{:}\KeywordTok{length}\NormalTok{(genres[[}\DecValTok{1}\NormalTok{]][[i]]))\{}
+    \CommentTok{# Append the genre if it isn't there yet.}
+    \ControlFlowTok{if}\NormalTok{(}\OperatorTok{!}\NormalTok{(genres[[}\DecValTok{1}\NormalTok{]][[i]][j] }\OperatorTok{%in%}\StringTok{ }\NormalTok{all_genres))\{}
+\NormalTok{      all_genres <-}\StringTok{ }\KeywordTok{append}\NormalTok{(all_genres, genres[[}\DecValTok{1}\NormalTok{]][[i]][j])}
+\NormalTok{    \}}
+\NormalTok{  \}}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+Next, I created a new variable that records the number of genres each
+anime is tagged for. The thinking here is that there may be some
+connection between the ratings of the anime and its ``complexity'',
+where the number of genres is a proxy for complexity. This variable is
+bound to the data frame.
+
+The \texttt{anime} data frame now looks like this:
+
+\begin{longtable}[]{@{}cccccccc@{}}
+\toprule
+anime\_id & name & genre & type & episodes & rating & members &
+genre\_tag\_number\tabularnewline
+\midrule
+\endhead
+32281 & Kimi no Na wa. & Drama, Romance, School, Supernatural & Movie &
+1 & 9.37 & 200630 & 4\tabularnewline
+5114 & Fullmetal Alchemist: Brotherhood & Action, Adventure, Drama,
+Fantasy, Magic, Military, Shounen & TV & 64 & 9.26 & 793665 &
+7\tabularnewline
+28977 & Gintama° & Action, Comedy, Historical, Parody, Samurai, Sci-Fi,
+Shounen & TV & 51 & 9.25 & 114262 & 7\tabularnewline
+9253 & Steins;Gate & Sci-Fi, Thriller & TV & 24 & 9.17 & 673572 &
+2\tabularnewline
+9969 & Gintama' & Action, Comedy, Historical, Parody, Samurai, Sci-Fi,
+Shounen & TV & 51 & 9.16 & 151266 & 7\tabularnewline
+32935 & Haikyuu!!: Karasuno Koukou VS Shiratorizawa Gakuen Koukou &
+Comedy, Drama, School, Shounen, Sports & TV & 10 & 9.15 & 93351 &
+5\tabularnewline
+\bottomrule
+\end{longtable}
+
+This table contains the response variable \texttt{rating}, variables
+suitable for predictors, and the variables \texttt{anime\_id} and
+\texttt{name} which are not used as predictors.
+
+The next step I wanted to make was to create a large data frame
+containing factor variables representing the presence of the different
+genres in each anime.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{rating_by_genre <-}\StringTok{ }\KeywordTok{tibble}\NormalTok{(}\DataTypeTok{rating =}\NormalTok{ anime}\OperatorTok{$}\NormalTok{rating)}
+
+\ControlFlowTok{for}\NormalTok{(i }\ControlFlowTok{in} \DecValTok{1}\OperatorTok{:}\KeywordTok{length}\NormalTok{(all_genres))\{}
+  \CommentTok{#create a variable for that genre:}
+\NormalTok{  x <-}\StringTok{ }\KeywordTok{integer}\NormalTok{(}\KeywordTok{length}\NormalTok{(anime}\OperatorTok{$}\NormalTok{genre))}
+  \CommentTok{#populate the variable:}
+  \ControlFlowTok{for}\NormalTok{ (j }\ControlFlowTok{in} \DecValTok{1}\OperatorTok{:}\KeywordTok{length}\NormalTok{(anime}\OperatorTok{$}\NormalTok{genre))\{}
+\NormalTok{    x[j] <-}\StringTok{ }\NormalTok{all_genres[i] }\OperatorTok{%in%}\StringTok{ }\NormalTok{genres[[}\DecValTok{1}\NormalTok{]][[j]]}
+\NormalTok{  \}}
+  \CommentTok{# Attach the newly created variable to the ratings:}
+\NormalTok{  x <-}\StringTok{ }\NormalTok{x }\OperatorTok{%>%}\StringTok{ }\KeywordTok{as_factor}\NormalTok{() }\OperatorTok{%>%}\StringTok{ }\KeywordTok{as_tibble}\NormalTok{()}
+  \KeywordTok{names}\NormalTok{(x) <-}\StringTok{ }\NormalTok{all_genres[i]}
+\NormalTok{  rating_by_genre <-}\StringTok{ }\KeywordTok{cbind}\NormalTok{(rating_by_genre, x)}
+\NormalTok{\}}
+
+\KeywordTok{rm}\NormalTok{(i)}
+\KeywordTok{rm}\NormalTok{(j)}
+\end{Highlighting}
+\end{Shaded}
+
+The table looks like this. I'm only showing the first ten genres for
+illustration purposes but there are actually forty-three of them.
+
+\begin{longtable}[]{@{}cccccccccc@{}}
+\toprule
+rating & Drama & Romance & School & Supernatural & Action & Adventure &
+Fantasy & Magic & Military\tabularnewline
+\midrule
+\endhead
+9.37 & 1 & 1 & 1 & 1 & 0 & 0 & 0 & 0 & 0\tabularnewline
+9.26 & 1 & 0 & 0 & 0 & 1 & 1 & 1 & 1 & 1\tabularnewline
+9.25 & 0 & 0 & 0 & 0 & 1 & 0 & 0 & 0 & 0\tabularnewline
+9.17 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0\tabularnewline
+9.16 & 0 & 0 & 0 & 0 & 1 & 0 & 0 & 0 & 0\tabularnewline
+9.15 & 1 & 0 & 1 & 0 & 0 & 0 & 0 & 0 & 0\tabularnewline
+\bottomrule
+\end{longtable}
+
+\hypertarget{visualizations}{%
+\subsection{Visualizations}\label{visualizations}}
+
+Looking at the correlations of the numeric variables:
+\includegraphics{anime-rating-predictions_files/figure-latex/numeric-correlation-1.pdf}
+
+The \texttt{members} variable is interesting here because it has some
+sort of association with \texttt{rating} but it isn't really suitable
+for a predictor variable. This is because the ratings and membership
+have a mutually influential relationship. The variable \texttt{members}
+is the ``number of community members that are in this anime's group'' on
+myanimelist.net. It is likely that ``better'' anime has more of a
+following, leading to more group members. So in some sense, the group
+membership responds to ratings, not the other way around. But also, the
+more people in the group could mean more exposure, gaining visibility
+for that anime. This could cause people to view the anime and rate it.
+And if there are more people in the group, it is likely to be better in
+the first place, leading to better ratings.
+
+Popularity and quality, represented by the variables \texttt{members}
+and \texttt{rating} are associated and both suitable for response
+variables. But it isn't wise to use one for a predictor of the other.
+Not only that, the \texttt{members} variable isn't strictly about the
+anime - it has to do with members of a website and so is at a remove
+from the characteristics of the anime itself.
+
+Here is a scatter plot of the \texttt{rating} variable against the
+\texttt{members} variable. For anime with more members, the positive
+relationship is more pronounced and the variance is smaller, possibly
+representing a process of forming consensus.
+
+\begin{verbatim}
+## `geom_smooth()` using method = 'gam' and formula 'y ~ s(x, bs = "cs")'
+\end{verbatim}
+
+\includegraphics{anime-rating-predictions_files/figure-latex/members-rating-1.pdf}
+
+The type appears to have some effect on the mean ratings:
+
+\includegraphics{anime-rating-predictions_files/figure-latex/type-plot-1.pdf}
+
+\begin{longtable}[]{@{}cc@{}}
+\toprule
+Type & Mean Rating\tabularnewline
+\midrule
+\endhead
+Movie & 6.334486\tabularnewline
+Music & 5.588665\tabularnewline
+ONA & 5.640479\tabularnewline
+OVA & 6.371087\tabularnewline
+Special & 6.525454\tabularnewline
+TV & 6.929487\tabularnewline
+\bottomrule
+\end{longtable}
+
+The average rating for different numbers of genre tags shows a
+potentially quadratic relationship:
+
+\begin{verbatim}
+## `geom_smooth()` using method = 'loess' and formula 'y ~ x'
+\end{verbatim}
+
+\includegraphics{anime-rating-predictions_files/figure-latex/genre-tags-1.pdf}
 
 \end{document}

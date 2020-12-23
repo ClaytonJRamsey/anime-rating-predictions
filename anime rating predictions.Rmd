@@ -2,8 +2,8 @@
 title: "Anime Rating Predictions"
 author: "Clayton Ramsey"
 date: "November 17, 2020"
-output: 
-  html_document: 
+output:
+  html_document:
     df_print: kable
 ---
 
@@ -123,7 +123,7 @@ Looking at the correlations of the numeric variables:
 ggpairs(data = anime, columns = c(5:8)) + theme(axis.text.x = element_text(angle = 90, hjust = 1))
 ```
 
-The `members` variable is interesting here because it has some sort of association with `rating` but it isn't really suitable for a predictor variable. This is because the ratings and membership have a mutually influential relationship. The variable `members` is the "number of community members that are in this anime's group" on myanimelist.net. It is likely that "better" anime has more of a following, leading to more group members. So in some sense, the group membership responds to ratings, not the other way around. But also, the more people in the group could mean more exposure, gaining visibility for that anime. This could cause people to view the anime and rate it. And if there are more people in the group, it is likely to be better in the first plce, leading to better ratings. 
+The `members` variable is interesting here because it has some sort of association with `rating` but it isn't really suitable for a predictor variable. This is because the ratings and membership have a mutually influential relationship. The variable `members` is the "number of community members that are in this anime's group" on myanimelist.net. It is likely that "better" anime has more of a following, leading to more group members. So in some sense, the group membership responds to ratings, not the other way around. But also, the more people in the group could mean more exposure, gaining visibility for that anime. This could cause people to view the anime and rate it. And if there are more people in the group, it is likely to be better in the first place, leading to better ratings. 
 
 Popularity and quality, represented by the variables `members` and `rating` are associated and both suitable for response variables. But it isn't wise to use one for a predictor of the other. Not only that, the `members` variable isn't strictly about the anime - it has to do with members of a website and so is at a remove from the characteristics of the anime itself.
 
@@ -156,4 +156,80 @@ mt <- ggplot(data = means_table, aes(x = genre_tag_number, y = ave_rating)) + ge
 mt
 ```
 
+Also, the rating seems to respond to the number of episodes:
+```{r number-episodes}
+er <- ggplot(data = anime, aes(x = log(episodes), y = rating)) + geom_point() + geom_smooth()
+er
+```
 
+
+## Creating models
+
+I began by dividing the dataset into testing and training sections at a 3 to 7 ratio.
+
+```{r dataset-divide, echo=TRUE}
+numrows <- length(anime$rating)
+training_indices <- sample(1:numrows, round(0.7*numrows), replace = FALSE)
+testing_indices <- setdiff(1:numrows, training_indices)
+```
+
+### A genre-based model
+
+The first model I tried was just by dropping all the genre factors into the formula and then proceeding with backwards elimination. I then generated predictions from this model.
+
+```{r genre-model, echo=TRUE}
+
+genremodel <- glm(rating ~ ., data = rating_by_genre[training_indices,])
+genremodel <- step(genremodel)
+summary(genremodel)
+
+ratings_predict <- predict(genremodel, rating_by_genre[testing_indices,])
+ratings_actual <- rating_by_genre$rating[testing_indices]
+```
+
+### A characteristics-based model
+
+This model uses a quadratic function of the number of genre tags, the log of the number of episodes, and the type factor as predictors.
+
+```{r characteristics-model, echo=TRUE}
+
+model_2 <- glm(rating ~ genre_tag_number + I(genre_tag_number^2) + I(log(episodes)) + type,
+               data = anime[training_indices,])
+summary(model_2)
+ratings_predict_2 <- predict(model_2, anime[testing_indices,])
+rating_summary <- tibble(actual = ratings_actual, pred1 = ratings_predict, pred2 = ratings_predict_2)
+
+head(rating_summary)
+
+```
+
+### A hybrid model
+
+My next goal was attempting to improve the predictions by combining the models. I updated the model and re-ran it with the variables from both previous models.
+
+```{r hybrid-model, echo=TRUE}
+anime_allvars <- cbind(rating_by_genre[,-1], anime)
+
+model_3 <- update(genremodel, . ~ . + genre_tag_number + I(genre_tag_number^2) + type,
+                  data = anime_allvars[training_indices,])
+ratings_predict_3 <- predict(model_3, anime_allvars[testing_indices,])
+```
+
+## Examining the predictions
+
+My first step is examining the root means squared error and mean absolute percent error of all three model predictions.
+
+```{r model-diag, echo=TRUE}
+
+rmse(ratings_actual, ratings_predict)
+rmse(ratings_actual, ratings_predict_2)
+rmse(ratings_actual, ratings_predict_3)
+
+mape(ratings_actual, ratings_predict)
+mape(ratings_actual, ratings_predict_2)
+mape(ratings_actual, ratings_predict_3)
+```
+
+So, we can see that the third model performs slightly better than either of the others.
+
+The testing set contains 3549 observations. It is worthwhile to look at these predictions in more detail. For example, over a tenth of the predictions are within 0.1 point of the actual rating. Nearly half of them are within half a point. Roughly 80% are less than one point of rating away from the actual value.
